@@ -1,0 +1,144 @@
+<head>
+  <title>snags</title>
+
+  <style>
+
+  tr.info input{
+  	/*width: auto;*/
+  	margin-bottom: 0;
+  }
+
+  .snag-name-input, .snag-description-input{
+  	width: 100%;
+  }
+/*
+  .snag-status-input, .snag-completed-input
+  {
+  	width: 50px;
+  }*/
+
+  </style>
+</head>
+
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+
+        <a class="brand" href="#">Snags</a>
+	        {{> listnav}}
+    		{{loginButtons align="right"}}
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+  	<div class="alertHolder"></div>
+    {{> snaglist}}
+
+  </div> <!-- /container -->
+</body>
+
+<template name="listnav">
+	{{#if navItem}}
+	<ul class="nav">
+		<li class="divider-vertical"></li>
+		{{#each navItem}}
+		  <li {{#if active}}class="active"{{/if}}>
+		  	<a href="#">{{name}}</a>
+		  </li>
+		{{/each}}
+		<li class="divider-vertical"></li>
+	</ul>
+	{{/if}}
+	<form class="navbar-form pull-left">
+		<button tabindex="0" id="newlist" class="btn"><i class="icon-plus"></i> New List</button>
+	</form>
+</template>
+
+<template name="snaglist">
+	<h1 class="projectName">{{listTitle}} <div class="btn-group">
+	  <a class="btn dropdown-toggle btn-mini"  data-toggle="dropdown" href="#">
+	    <i class="icon-cog"></i>
+	    <span class="caret"></span>
+	  </a>
+	  <ul class="dropdown-menu">
+		<li>
+			<a tabindex="-1" id="rename_list" href="#"><i class="icon-pencil"></i> Rename List</a>
+		</li>
+		<li>
+			<a tabindex="-1" id="hide_list" href="#"><i class="icon-eye-close"></i> Hide list</a>
+		</li>
+		<li class="divider"></li>
+		<li>
+			<a tabindex="-1" id="delete_list" href="#"><i class="icon-trash"></i> Delete list</a>
+		</li>
+	  </ul></h1>
+	</div>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Status</th>
+				<th>Description</th>
+				<th>Assigned</th>
+				<th>Completed</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{#each snagItem}}
+				{{#if selected}}
+					{{> editableSnag}}
+				{{else }}
+					{{> thisSnag}}
+				{{/if}}
+			{{/each}}
+		</tbody>
+	</table>
+	<button tabindex="0" id="addrow" class="btn btn-primary"><i class="icon-plus icon-white"></i> Add Row</button>
+	<button tabindex="0" id="deleterow" class="btn btn-danger"><i class="icon-minus icon-white"></i> Delete Row</button>
+<!-- 	<form class="form">
+		<label for="snagName">Name</label>
+		<input type="text" class="input-small" name="snagName" id="snagName">
+		<label for="snagStatus">Status</label>
+		<input type="text" class="input-small" name="snagStatus" id="snagStatus">
+		<label for="snagDescription">Description</label>
+		<input type="text" class="input-small" name="snagDescription" id="snagDescription">
+		<label for="snagAssigned">Assigned</label>
+		<input type="text" class="input-small" name="snagAssigned" id="snagAssigned">
+		<label for="snagCompleted">Completed</label>
+		<input type="text" class="input-small" name="snagCompleted" id="snagCompleted">
+	</form> -->
+</template>
+
+<template name="thisSnag">
+	<tr class="snagRow {{#if completed}}completed{{/if}} ">
+		<td>{{name}}</td>
+		<td>{{status}}</td>
+		<td>{{description}}</td>
+		<td>{{assigned}}</td>
+		<td><input class="input-small snag-completed-input" name="completed" id="snag-completed-input" type="checkbox"   {{#if completed}}checked{{/if}} /></td>
+		<td>{{#if creator}}<i class="icon-lock"></i>{{/if}}</td>
+	</tr>
+</template>
+
+<template name="editableSnag">
+	<tr class="editable info {{#if completed}}completed{{/if}}">
+		<td>
+			<input placeholder="Type something..." class="snag-name-input" name="name" id="snag-name-input" type="text" value="{{name}}" />
+		</td>
+		<td>
+			<input placeholder="Type something..." class="input-small snag-status-input" name="status" id="snag-status-input" type="text" value="{{status}}" />
+		</td>
+		<td>
+			<input placeholder="Type something..." class="snag-description-input" name="description" id="snag-description-input" type="text" value="{{description}}" />
+		</td>
+		<td>
+			<input placeholder="Type something..." class="input-small snag-assigned-input" name="assigned" id="snag-assigned-input" type="text" value="{{assigned}}" />
+		</td>
+		<td>
+			<input class="input-small snag-completed-input" name="completed" id="snag-completed-input" type="checkbox" {{#if completed}}checked{{/if}} />
+		</td>
+		<td>{{#if creator}}<i class="icon-lock"></i>{{/if}}</td>
+	</tr>
+</template>

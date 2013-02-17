@@ -1,0 +1,47 @@
+/* CSS declarations go here */
+
+.completed{
+	text-decoration: line-through;
+	color: #aaa;
+}
+
+.completed input{
+	/*text-decoration: line-through;*/
+	color: #aaa;
+}
+
+body {
+  padding-top: 60px;
+}
+@media (max-width: 979px) {
+  body {
+    padding-top: 0px;
+  }
+}
+
+#login-buttons {
+	float:right;
+	margin-right: 20px;
+	margin-top: 10px;
+}
+
+.table td {
+	padding: 8px;
+}
+
+.table .editable td {
+	padding: 3px 6px;
+}
+
+.table .editable td input[type="text"], .table .editable input[type="email"], .table .editable input[type="password"] {
+	padding: 4px;
+}
+
+#delete_list {
+	color: rgb(180, 0, 0);
+	font-weight: bold;
+}
+
+.projectName {
+	display: inline;
+}
