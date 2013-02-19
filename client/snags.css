@@ -45,3 +45,7 @@ body {
 .projectName {
 	display: inline;
 }
+
+#rename-form {
+	margin-bottom: 0;
+}

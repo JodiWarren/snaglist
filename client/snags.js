@@ -1,6 +1,14 @@
 Snags = new Meteor.Collection("snags");
 Lists = new Meteor.Collection("lists");
 
+function get_current_list_name(){
+  thisList = Session.get("selected_list");
+    thisListCollection = Lists.findOne(thisList);
+  if (thisListCollection != undefined && thisList != null) {
+    return thisListCollection.name;
+  };
+}
+
 Template.snaglist.snagItem = function(){
   return Snags.find({list : Session.get("selected_list")}, {sort: {_id:-1, completed: 1, name:1, status: 1}});
 }
@@ -10,11 +18,7 @@ Template.snaglist.selected = function () {
 };
 
 Template.snaglist.listTitle = function () {
-  thisList = Session.get("selected_list");
-    thisListCollection = Lists.findOne(thisList);
-  if (thisListCollection != undefined && thisList != null) {
-    return thisListCollection.name;
-  };
+  return get_current_list_name();
 };
 
 Template.snaglist.events({
@@ -46,19 +50,24 @@ Template.snaglist.events({
     // console.log(Session);
   },
   'click #rename_list' : function(){
+    currentListName = get_current_list_name();
     $('.projectName').popover({
       html: true,
-      content: '<form class="form-inline">
-                <input type="text" class="input-small" placeholder="New List Name" value="{{listTitle}}">
-                <input type="password" class="input-small" placeholder="Password">
-                <label class="checkbox">
-                  <input type="checkbox"> Remember me
-                </label>
-                <button type="submit" class="btn">Sign in</button>
-              </form>',
+      content: '<form id="rename-form" class="form-inline"><div class="input-append"><input class="input-small span2" id="rename_list_input" value="'+currentListName+'" type="text"><button class="btn btn-success" id="rename_ok" type="button"><i class="icon-ok icon-white"></i></button><button class="btn btn-danger" id="rename_cancel" type="button"><i class="icon-remove icon-white"></i></button></div></form>',
       placement: 'bottom',
-      container: 'body'
+      container: '.listtitlewrapper'
     })
+  },
+  'click #rename_ok' : function() {
+    thisList = Session.get("selected_list");
+    console.log(thisList);
+    newListName = $('#rename_list_input').val();
+    console.log(newListName);
+    Lists.update(thisList, {name: newListName})
+    $('.projectName').popover('destroy');
+  },
+  'click #rename_cancel' : function() {
+    $('.projectName').popover('destroy');
   }
 });
 

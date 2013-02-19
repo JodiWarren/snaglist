@@ -57,23 +57,27 @@
 </template>
 
 <template name="snaglist">
-	<h1 class="projectName">{{listTitle}} <div class="btn-group">
-	  <a class="btn dropdown-toggle btn-mini"  data-toggle="dropdown" href="#">
-	    <i class="icon-cog"></i>
-	    <span class="caret"></span>
-	  </a>
-	  <ul class="dropdown-menu">
-		<li>
-			<a tabindex="-1" id="rename_list" href="#"><i class="icon-pencil"></i> Rename List</a>
-		</li>
-		<li>
-			<a tabindex="-1" id="hide_list" href="#"><i class="icon-eye-close"></i> Hide list</a>
-		</li>
-		<li class="divider"></li>
-		<li>
-			<a tabindex="-1" id="delete_list" href="#"><i class="icon-trash"></i> Delete list</a>
-		</li>
-	  </ul></h1>
+	<div class="listtitlewrapper">
+		<h1 class="projectName">{{listTitle}}
+		<div class="btn-group">
+		  <a class="btn dropdown-toggle btn-mini"  data-toggle="dropdown" href="#">
+		    <i class="icon-cog"></i>
+		    <span class="caret"></span>
+		  </a>
+		  <ul class="dropdown-menu">
+			<li>
+				<a tabindex="-1" id="rename_list" href="#"><i class="icon-pencil"></i> Rename List</a>
+			</li>
+			<li>
+				<a tabindex="-1" id="hide_list" href="#"><i class="icon-eye-close"></i> Hide list</a>
+			</li>
+			<li class="divider"></li>
+			<li>
+				<a tabindex="-1" id="delete_list" href="#"><i class="icon-trash"></i> Delete list</a>
+			</li>
+		  </ul>
+		</div>
+	</h1>
 	</div>
 	<table class="table table-hover">
 		<thead>
@@ -95,8 +99,8 @@
 			{{/each}}
 		</tbody>
 	</table>
-	<button tabindex="0" id="addrow" class="btn btn-primary"><i class="icon-plus icon-white"></i> Add Row</button>
-	<button tabindex="0" id="deleterow" class="btn btn-danger"><i class="icon-minus icon-white"></i> Delete Row</button>
+	<button tabindex="0" id="addrow" class="btn"><i class="icon-plus"></i> Add Row</button>
+	<button tabindex="0" id="deleterow" class="btn"><i class="icon-minus"></i> Delete Row</button>
 <!-- 	<form class="form">
 		<label for="snagName">Name</label>
 		<input type="text" class="input-small" name="snagName" id="snagName">
