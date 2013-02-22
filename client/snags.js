@@ -2,15 +2,16 @@ Snags = new Meteor.Collection("snags");
 Lists = new Meteor.Collection("lists");
 
 function get_current_list_name(){
-  thisList = Session.get("selected_list");
-    thisListCollection = Lists.findOne(thisList);
+  thisList = Session.get("current_list");
+  thisListCollection = Lists.findOne(thisList);
   if (thisListCollection != undefined && thisList != null) {
     return thisListCollection.name;
   };
 }
 
 Template.snaglist.snagItem = function(){
-  return Snags.find({list : Session.get("selected_list")}, {sort: {_id:-1, completed: 1, name:1, status: 1}});
+  return Snags.find({list : Session.get("current_list")}, {sort: [['completed', 'asc'], ['name', 'asc'], ['status', 'asc'], ['_id', 'desc']]
+});
 }
 
 Template.snaglist.selected = function () {
@@ -21,16 +22,34 @@ Template.snaglist.listTitle = function () {
   return get_current_list_name();
 };
 
+Template.snaglist.isprivate = function () {
+  thisList = Session.get("current_list");
+  thisListCollection = Lists.findOne(thisList);
+  // console.log(thisListCollection);
+  if (thisListCollection !== undefined) {
+    return thisListCollection.isprivate;
+  };
+};
+
+Template.snaglist.islocked = function () {
+  thisList = Session.get("current_list");
+  thisListCollection = Lists.findOne(thisList);
+  // console.log(thisListCollection);
+  if (thisListCollection !== undefined) {
+    return thisListCollection.islocked;
+  };
+};
+
 Template.snaglist.events({
   'click #addrow' : function () {
     $(".alert").alert('close');
-  	newSnag = Snags.insert({name: '', status: '', description: '', assigned: '', completed: '', creator: Meteor.userId(), list: Session.get("selected_list")});
+  	newSnag = Snags.insert({name: '', status: '', description: '', assigned: '', completed: '', creator: Meteor.userId(), list: Session.get("current_list")});
   	Session.set("selected_snag", newSnag);
   },
   'click #deleterow' : function () {
     doomedSnag = Session.get("selected_snag");
-    console.log(doomedSnag);
-    if (doomedSnag === undefined || doomedSnag === null) {
+    // console.log(doomedSnag);
+    if (!doomedSnag) {
       $('.alertHolder').html('<div class="alert fade in alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> No snag was selected.</div>');
         return;
     } else {
@@ -45,8 +64,18 @@ Template.snaglist.events({
     }
   },
   'click tr' : function() {
-    Session.set("selected_snag", this._id);
-    $(".alert").alert('close');
+    thisList = Session.get("current_list");
+    thisListCollection = Lists.findOne(thisList);
+    // console.log(thisListCollection);
+    if (!thisListCollection.islocked || thisListCollection.creator === Meteor.userId()) {
+      Session.set("selected_snag", this._id);
+      $(".alert").alert('close');
+    } else {
+      console.log(typeof(thisListCollection.creator));
+      console.log(Meteor.users.findOne({_id: thisListCollection.creator}));
+      // thisListOwner = Meteor.users.findOne(thisListCollection.creator).username;
+      $('.alertHolder').html('<div class="alert fade in alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> You don\'t have access to this locked list. Please contact the list owner for access</div>');
+    }
     // console.log(Session);
   },
   'click #rename_list' : function(){
@@ -59,30 +88,73 @@ Template.snaglist.events({
     })
   },
   'click #rename_ok' : function() {
-    thisList = Session.get("selected_list");
-    console.log(thisList);
+    thisList = Session.get("current_list");
     newListName = $('#rename_list_input').val();
-    console.log(newListName);
-    Lists.update(thisList, {name: newListName})
+    Lists.update(thisList, {$set: {name: newListName}});
     $('.projectName').popover('destroy');
   },
   'click #rename_cancel' : function() {
     $('.projectName').popover('destroy');
+  },
+  'click #delete_list' : function() {
+    $('#delete_confirm').modal();
+  },
+  'click #delete_ok' : function(){
+    thisList = Session.get("current_list");
+    Lists.remove(thisList);
+    Snags.remove({list: thisList});
+    $('#delete_confirm').modal('hide');
+  },
+  'click #hide_list' : function(){
+    thisList = Session.get("current_list");
+    thisListCollection = Lists.findOne(thisList);
+    if (thisListCollection.isprivate === true ) {
+      Lists.update(thisList, {$set: {isprivate: false}});
+    } else {
+      Lists.update(thisList, {$set: {isprivate: true}});
+    }
+  },
+  'click #lock_list' : function(){
+    thisList = Session.get("current_list");
+    thisListCollection = Lists.findOne(thisList);
+    if (thisListCollection.islocked === true ) {
+      Lists.update(thisList, {$set: {islocked: false}});
+    } else {
+      Lists.update(thisList, {$set: {islocked: true}});
+    }
   }
 });
 
 
 Template.listnav.navItem = function(){
-  return Lists.find({}, {sort: {name: 1, _id: -1}});
+  if (Meteor.userId()) {
+    return Lists.find({
+      $or:
+        [
+          {isprivate: null},
+          {isprivate: undefined},
+          {isprivate: false},
+          {creator: Meteor.userId()}
+        ]},
+        {sort: {name: 1, _id: -1}});
+  } else {
+    return Lists.find({
+      $or: [
+        {isprivate: null},
+        {isprivate: undefined},
+        {isprivate: false}
+        ]},
+        {sort: {name: 1, _id: -1}});
+  }
 }
 
 Template.listnav.events({
   'click #newlist' : function (event) {
     event.preventDefault();
-    newList = Lists.insert({name:'New List', creator: Meteor.userId()});
+    newList = Lists.insert({name:'New List', creator: Meteor.userId(), isprivate: true, islocked: true});
   },
   'click ul li' : function (event) {
-    return Session.set("selected_list", this._id);
+    return Session.set("current_list", this._id);
   }
 });
 
@@ -140,14 +212,19 @@ Template.editableSnag.events(okCancelEvents(
 ));
 
 
+function snagTickComplete(thisSnagId){
+  thisSnag = Snags.findOne(thisSnagId);
+  console.log(thisSnag.completed);
+  if (thisSnag.completed === true) {
+    Snags.update(thisSnagId, {$set: {completed: false}});
+  } else {
+    Snags.update(thisSnagId, {$set: {completed: true}});
+  }
+}
 
 Template.editableSnag.events({
   'change .snag-completed-input' : function(){
-    if (this.completed === true) {
-      this.completed = false;
-    } else {
-      this.completed = true;
-    }
+    snagTickComplete(this._id);
   },
   'click input' : function() {
     // console.log();
@@ -157,11 +234,7 @@ Template.editableSnag.events({
 
 Template.thisSnag.events({
   'change .snag-completed-input' : function(){
-    if (this.completed === true) {
-      this.completed = false;
-    } else {
-      this.completed = true;
-    }
+    snagTickComplete(this._id);
   },
   'click td' : function() {
     // console.log();
@@ -170,11 +243,11 @@ Template.thisSnag.events({
 });
 
 Meteor.startup(function () {
-  if (!Session.get("selected_list")) {
+  if (!Session.get("current_list")) {
     defaultList = Lists.find({}, {sort: {name: 1}});
     setDefaultList  = defaultList.observe({
       added : function (list){
-        Session.set("selected_list", list._id);
+        Session.set("current_list", list._id);
         setDefaultList.stop();
       }
     })

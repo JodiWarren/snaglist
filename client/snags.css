@@ -49,3 +49,7 @@ body {
 #rename-form {
 	margin-bottom: 0;
 }
+
+.public .listTitleText {
+	color: green;
+}
